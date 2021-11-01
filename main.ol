@@ -29,29 +29,34 @@ service FreemarkerService( params: Params ) {
     interfaces: FreemarkerInterface
   }
 
+  define loadFreemarker {
+    loadEmbeddedService@Runtime( {
+        filepath = "dk.simpleconcept.freemarker.Freemarker"
+        type = "Java"
+      } )( FreemarkerOutputPort.location )
+  }
+
+  init {
+    loadFreemarker
+  }
+
   main {
     
     [ parse( request )( result ) {
-
-      loadEmbeddedService@Runtime( {
-        filepath = "dk.simpleconcept.freemaker.Freemaker"
-        type = "Java"
-      } )( FreemarkerOutputPort.location )
-
       // Loading JSON
       readFile@File( { filename = request.data, format = "json" } )( json )
       getJsonString@JsonUtils( json.data )( freemarker.data )
 
       // Setting input and output paths
-      freemarker.input_path = params.inputPath;
-      freemarker.output_path = params.outputPath;
+      freemarker.input_path = params.inputPath
+      freemarker.output_path = params.outputPath
 
       // Setting file
-      freemarker.file = request.file;
+      freemarker.file = request.file
 
-      Parse@FreemarkerOutputPort( freemarker )( response );
+      Parse@FreemarkerOutputPort( freemarker )( response )
 
-      result.response = response.response;
+      result.response = response.response
 
       println@Console( result.response )()
 
