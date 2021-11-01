@@ -8,6 +8,7 @@ from runtime import Runtime
 type Params {
   inputPath:string
   outputPath:string
+  globalData?:string
 }
 
 service FreemarkerService( params: Params ) {
@@ -38,6 +39,15 @@ service FreemarkerService( params: Params ) {
 
   init {
     loadFreemarker
+
+    if( is_defined( params.globalData ) ) {
+      readFile@File( { filename = params.globalData, format = "json" } )( json )
+      getJsonString@JsonUtils( json.data )( data )
+
+      Load@FreemarkerOutputPort( { .data = data } )( response )
+
+      println@Console( response.response )()
+    }
   }
 
   main {

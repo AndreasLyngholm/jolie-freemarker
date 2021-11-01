@@ -9,7 +9,12 @@ type FreemarkerResponse: void {
   response: string
 }
 
+type FreemarkerLoadRequest: void {
+  data: string
+}
+
 interface FreemarkerInterface {
   RequestResponse:
-    Parse( FreemarkerRequest )( FreemarkerResponse )
+    Parse( FreemarkerRequest )( FreemarkerResponse ),
+    Load( FreemarkerLoadRequest )( FreemarkerResponse )
 }
