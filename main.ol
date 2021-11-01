@@ -4,7 +4,13 @@ from file import File
 from json_utils import JsonUtils
 from runtime import Runtime
 
-service ParseService {
+type Params {
+  jsonFile:string
+  inputPath:string
+  outputPath:string
+}
+
+service ParseService( params:Params ) {
   embed File as File
   embed Console as Console
   embed JsonUtils as JsonUtils
@@ -20,11 +26,11 @@ service ParseService {
         type = "Java"
     } )( FreemakerOutputPort.location )
 
-    readFile@File( { filename = "data.json", format = "json" } )( json )
+    readFile@File( { filename = params.jsonFile, format = "json" } )( json )
     getJsonString@JsonUtils( json.data )( request.data )
 
-    request.input_path = "C:\\Coding\\thesis\\www";
-    request.output_path = "C:\\Coding\\thesis\\www\\generated\\";
+    request.input_path = params.inputPath;
+    request.output_path = params.outputPath;
     
     println@Console( request )()
 
