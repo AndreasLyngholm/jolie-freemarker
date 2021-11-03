@@ -2,7 +2,7 @@ type FreemarkerRequest: void {
   file: string
   input_path: string
   output_path: string
-  data: string
+  data?: string
 }
 
 type FreemarkerResponse: void {

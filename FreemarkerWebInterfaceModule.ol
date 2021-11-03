@@ -1,6 +1,5 @@
 type FreemarkerWebRequest: void {
   file: string
-  data: string
 }
 
 type FreemarkerWebResponse: void {

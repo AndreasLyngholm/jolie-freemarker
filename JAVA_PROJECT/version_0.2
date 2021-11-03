@@ -1,0 +1,119 @@
+package dk.simpleconcept.freemarker;
+
+import jolie.runtime.Value;
+import jolie.runtime.JavaService;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
+public class Freemarker extends JavaService
+{
+	Map<String, Object> data = new HashMap<String, Object>();
+	ObjectMapper oMapper = new ObjectMapper();
+	
+	public Value Load( Value request ) {
+		
+		String raw_data = request.getFirstChild( "data" ).strValue();
+    	
+    	try {
+    		Map<String, Object> globalMap = oMapper.readValue(raw_data, Map.class);
+    		
+    		data.putAll(globalMap);
+            
+        } catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Value response = Value.create();
+        response.getFirstChild( "response" ).setValue( "Successfully loaded global variable." );
+        return response;
+	}
+	
+    public Value Parse( Value request ) {
+    	String file_path = request.getFirstChild( "file" ).strValue();
+    	String input_path = request.getFirstChild( "input_path" ).strValue();
+    	String output_path = request.getFirstChild( "output_path" ).strValue();
+    	    	
+    	String raw_data = request.getFirstChild( "data" ).strValue();
+    	String new_path = "";
+    	
+    	if(raw_data != "") {
+    		try {
+    			Map<String, Object> globalMap = oMapper.readValue(raw_data, Map.class);
+        		
+        		data.putAll(globalMap);
+                
+        	} catch (JsonParseException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		} catch (JsonMappingException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}
+    	
+    	
+    	Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
+		cfg.setClassForTemplateLoading(Freemarker.class, "/");
+		
+		try {
+			cfg.setDirectoryForTemplateLoading(new File(input_path));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		File file = new File(input_path + file_path);
+		if(this.getExtension(file.getName()).equals(Optional.of("tol"))) {
+			try {
+				//Load template from source folder
+				Template template = cfg.getTemplate(file.getName());
+				
+				// File output
+				new_path = output_path + file.getName().replace("tol", "html");
+				Writer new_file = new FileWriter (new File(new_path));
+				template.process(data, new_file);
+				new_file.flush();
+				new_file.close();
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (TemplateException e) {
+				e.printStackTrace();
+			}
+		}
+    	
+    	Value response = Value.create();
+        response.getFirstChild( "response" ).setValue( new_path );
+        return response;
+    }
+    
+    public Optional<String> getExtension(String filename) {
+        return Optional.ofNullable(filename)
+          .filter(f -> f.contains("."))
+          .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
+}
